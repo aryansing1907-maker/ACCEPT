@@ -204,98 +204,56 @@
     const errorMsg = document.getElementById("errorMsg");
     const confettiCanvas = document.getElementById("confettiCanvas");
 
-    function resizeConfettiCanvas() {
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
-      confettiCanvas.width = window.innerWidth * dpr;
-      confettiCanvas.height = window.innerHeight * dpr;
-      confettiCanvas.style.width = "100vw";
-      confettiCanvas.style.height = "100vh";
-    }
-
-    resizeConfettiCanvas();
-    window.addEventListener("resize", resizeConfettiCanvas);
-
-    const confettiInstance = confetti.create(confettiCanvas, {
-      resize: false,
-      useWorker: true
-    });
+    // Initialize confetti
+    const confettiInstance = confetti.create(confettiCanvas, { resize: true });
 
     function fullScreenConfetti() {
-      const end = Date.now() + 1600;
-      (function frame() {
-        confettiInstance({
-          particleCount: 12,
-          spread: 90,
-          startVelocity: 45,
-          ticks: 180,
-          origin: { x: Math.random(), y: Math.random() * 0.3 }
-        });
-        if (Date.now() < end) requestAnimationFrame(frame);
-      })();
-
-      setTimeout(() => {
-        confettiInstance({
-          particleCount: 300,
-          spread: 140,
-          startVelocity: 60,
-          ticks: 220,
-          origin: { x: 0.5, y: 0.55 }
-        });
-      }, 300);
+      confettiInstance({ particleCount: 300, spread: 140 });
     }
 
-    let yesScale = 1;
-    function growYes() {
-      yesScale = Math.min(2.2, yesScale + 0.08);
-      yesBtn.style.transform = `translateY(-50%) scale(${yesScale})`;
-    }
+    // Capture Yes click
+    yesBtn.addEventListener("click", () => {
+      const name = prompt("Who said YES? 💖") || "Anonymous 😏";
 
-    function clamp(n, min, max) {
-      return Math.max(min, Math.min(max, n));
-    }
+      // Display the name in the result
+      result.querySelector("h2").textContent = `YAY! 🎉 ${name} said YES!`;
 
-    function moveNo(px, py) {
-      const z = zone.getBoundingClientRect();
-      const b = noBtn.getBoundingClientRect();
+      // Show result
+      zone.style.display = "none";
+      hint.style.display = "none";
+      errorMsg.style.display = "none";
+      result.style.display = "block";
 
-      let dx = (b.left + b.width / 2) - px;
-      let dy = (b.top + b.height / 2) - py;
-      let mag = Math.hypot(dx, dy) || 1;
-      dx /= mag;
-      dy /= mag;
-
-      let newLeft = (b.left - z.left) + dx * 90;
-      let newTop  = (b.top - z.top) + dy * 90;
-
-      newLeft = clamp(newLeft, 0, z.width - b.width);
-      newTop  = clamp(newTop, 0, z.height - b.height);
-
-      noBtn.style.left = `${newLeft}px`;
-      noBtn.style.top  = `${newTop}px`;
-
-      growYes();
-    }
-
-    zone.addEventListener("pointermove", e => {
-      const b = noBtn.getBoundingClientRect();
-      const d = Math.hypot(
-        (b.left + b.width / 2) - e.clientX,
-        (b.top + b.height / 2) - e.clientY
-      );
-      if (d < 140) moveNo(e.clientX, e.clientY);
+      // Fire confetti
+      fullScreenConfetti();
     });
 
+    // No button behavior
     noBtn.addEventListener("click", e => {
       e.preventDefault();
       errorMsg.style.display = "block";
     });
 
-    yesBtn.addEventListener("click", () => {
-      zone.style.display = "none";
-      hint.style.display = "none";
-      errorMsg.style.display = "none";
-      result.style.display = "block";
-      fullScreenConfetti();
+    // Optional: Make No button move away
+    function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+    function moveNo(px, py) {
+      const z = zone.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+      let dx = (b.left + b.width/2) - px;
+      let dy = (b.top + b.height/2) - py;
+      let mag = Math.hypot(dx, dy) || 1;
+      dx /= mag; dy /= mag;
+      let newLeft = clamp((b.left - z.left) + dx*90, 0, z.width - b.width);
+      let newTop  = clamp((b.top - z.top) + dy*90, 0, z.height - b.height);
+      noBtn.style.left = `${newLeft}px`;
+      noBtn.style.top = `${newTop}px`;
+    }
+
+    zone.addEventListener("pointermove", e => {
+      const b = noBtn.getBoundingClientRect();
+      const d = Math.hypot((b.left + b.width/2) - e.clientX, (b.top + b.height/2) - e.clientY);
+      if (d < 140) moveNo(e.clientX, e.clientY);
     });
   </script>
 </body>
