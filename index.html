@@ -215,45 +215,43 @@
     yesBtn.addEventListener("click", () => {
       const name = prompt("Who said YES? 💖") || "Anonymous 😏";
 
-      // Display the name in the result
       result.querySelector("h2").textContent = `YAY! 🎉 ${name} said YES!`;
 
-      // Show result
       zone.style.display = "none";
       hint.style.display = "none";
       errorMsg.style.display = "none";
       result.style.display = "block";
 
-      // Fire confetti
       fullScreenConfetti();
     });
 
-    // No button behavior
+    // No button click shows error
     noBtn.addEventListener("click", e => {
       e.preventDefault();
       errorMsg.style.display = "block";
     });
 
-    // Optional: Make No button move away
-    function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+    // Move No button randomly inside the zone
+    function moveNoRandom() {
+      const zoneRect = zone.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
 
-    function moveNo(px, py) {
-      const z = zone.getBoundingClientRect();
-      const b = noBtn.getBoundingClientRect();
-      let dx = (b.left + b.width/2) - px;
-      let dy = (b.top + b.height/2) - py;
-      let mag = Math.hypot(dx, dy) || 1;
-      dx /= mag; dy /= mag;
-      let newLeft = clamp((b.left - z.left) + dx*90, 0, z.width - b.width);
-      let newTop  = clamp((b.top - z.top) + dy*90, 0, z.height - b.height);
+      const maxLeft = zoneRect.width - btnRect.width;
+      const maxTop = zoneRect.height - btnRect.height;
+
+      const newLeft = Math.random() * maxLeft;
+      const newTop = Math.random() * maxTop;
+
       noBtn.style.left = `${newLeft}px`;
       noBtn.style.top = `${newTop}px`;
     }
 
+    // Detect pointer near No button
     zone.addEventListener("pointermove", e => {
       const b = noBtn.getBoundingClientRect();
-      const d = Math.hypot((b.left + b.width/2) - e.clientX, (b.top + b.height/2) - e.clientY);
-      if (d < 140) moveNo(e.clientX, e.clientY);
+      const distance = Math.hypot((b.left + b.width/2) - e.clientX, (b.top + b.height/2) - e.clientY);
+
+      if (distance < 150) moveNoRandom();  // moves when cursor is close
     });
   </script>
 </body>
